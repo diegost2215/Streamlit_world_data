@@ -8,7 +8,7 @@ st.set_page_config(page_title='Dashboard', layout="wide")
 #@st.cache_data
 def load_indicators(indicators_path):
     indicators = pd.read_feather(indicators_path)    
-    indicator_names = set(list(indicators.columns.str[:-5])[2:])        
+    indicator_names = sorted(set(list(indicators.columns.str[:-5])[2:]))        
     return  indicators, indicator_names
 
 #@st.cache_data
@@ -26,11 +26,11 @@ def load_map(map_path):
 metadata_indicators = load_metadata('metadata_indicators.csv')
 indicators, indicator_names = load_indicators('indicators_data.feather')
 mapa = load_map('mapa.geo.json')
-
+st.subheader('Explore our world data', divider='red')
 tab1, tab2, tab3 = st.tabs(["Correlation Explorer", "Data Spacialization", "Data Sources and Definitions"])
 
-with tab1:
-    st.subheader('Explore the  data correlations between countries indicators', divider='red')
+
+with tab1:    
     col1, col2 = st.columns([0.25, 0.7], vertical_alignment='center')
     with col1:        
         indicator_x = st.selectbox("PLease, select the indicator ('X' axis )", indicator_names, index=1)
@@ -48,7 +48,7 @@ with tab1:
 with tab2:    
     col1, col2 = st.columns([0.25, 0.75],vertical_alignment='center')
     with col1:
-        indicator_tab2 = st.selectbox("PLease, select the indicator to map", indicator_names, key=3 )
+        indicator_tab2 = st.selectbox("PLease, select the indicator to map", indicator_names, key=3, index=1 )
         year_tab2 = st.select_slider("Please, select the year", options=["2019","2020", "2021", "2022", "2023", "Mean"], value=("Mean"))
         st.caption('Observations:')
         st.caption('1-when used, Mean encompass the years 2019-2023')        
@@ -56,19 +56,20 @@ with tab2:
     
     
     with col2:
-        st.subheader(f'{indicator_tab2}-{year_tab2}', divider='red')
+        #st.subheader(f'{indicator_tab2}-{year_tab2}', divider='red')
         try:
             fig2 = px.choropleth(indicators, geojson=mapa, locations='countryiso3code', color=f'{indicator_tab2}_{year_tab2}',
-            color_continuous_scale='plasma', featureidkey='properties.iso_a3', labels={f'{indicator_tab2}_{year_tab2}':'Values'},
-            fitbounds='geojson',hover_name="country.value")        
-            fig2.update_layout(height=600)    
+            color_continuous_scale='plasma', featureidkey='properties.iso_a3', labels={f'{indicator_tab2}_{year_tab2}':'Value'},
+            fitbounds='geojson',hover_name="country.value", title=f'{indicator_tab2}-{year_tab2}' )        
+            fig2.update_layout(height=600)  
+            fig2.update_layout(title={'text': f'{indicator_tab2}-{year_tab2}', 'y':0.9, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top'})
             st.plotly_chart(fig2,use_container_width=True,height=600)
         except: 
-            st.subheader('Not enough data for selected year/indicator. Pleas select another')
+            st.subheader('Not enough data for selected year/indicator. Pleas select another year/indicator')
          
 
 with tab3:
-    st.subheader('Data Sources, observations, definitions', divider='red')
+    #st.subheader('Data Sources, observations, definitions', divider='red')
     st.caption('Most of the data employed in this dashboard was downloaded from the World Bank site (https://data.worldbank.org/). The data was treated and transformations like mean were applied. The table below presents the sources and defintions of the indicators.')
     st.caption('Dashboard developed for educational purposes as curricular project for undergraduate degree in Data Science in "Ampli", Brazil.')
 
